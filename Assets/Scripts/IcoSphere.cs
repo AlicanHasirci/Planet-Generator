@@ -12,9 +12,9 @@ public class IcoSphere : MonoBehaviour {
 	public int seed;
 	private Mesh mesh;
 
-	private List<Vector3> vertList = new List<Vector3>();
-	private List<Triangle> faces = new List<Triangle>();
-	private Dictionary<long, int> middlePointIndexCache = new Dictionary<long, int>();
+	public List<Vector3> vertList = new List<Vector3>();
+	public List<Triangle> faces = new List<Triangle>();
+	public Dictionary<long, int> middlePointIndexCache = new Dictionary<long, int>();
 
 	public void Create() {
 		mesh = GetMesh ();
@@ -26,12 +26,11 @@ public class IcoSphere : MonoBehaviour {
 		CreateIcoSphere ();
 		RefineTriangles ();
 		FindNeighbouringTriangles ();
-		ReconstructEdges ();
+		Reconstruct ();
 		PopulateMesh ();
 	}
 
 	private void CreateIcoSphere () {
-		// create 12 vertices of a icosahedron
 		float t = (1f + Mathf.Sqrt(5f)) / 2f;
 
 		vertList.Add(new Vector3(-1f,  t,  0f).normalized * radius);
@@ -49,31 +48,24 @@ public class IcoSphere : MonoBehaviour {
 		vertList.Add(new Vector3(-t,  0f, -1f).normalized * radius);
 		vertList.Add(new Vector3(-t,  0f,  1f).normalized * radius);
 
-
-		// create 20 triangles of the icosahedron
-
-		// 5 faces around point 0
 		faces.Add(new Triangle(0, 11, 5));
 		faces.Add(new Triangle(0, 5, 1));
 		faces.Add(new Triangle(0, 1, 7));
 		faces.Add(new Triangle(0, 7, 10));
 		faces.Add(new Triangle(0, 10, 11));
 
-		// 5 adjacent faces 
 		faces.Add(new Triangle(1, 5, 9));
 		faces.Add(new Triangle(5, 11, 4));
 		faces.Add(new Triangle(11, 10, 2));
 		faces.Add(new Triangle(10, 7, 6));
 		faces.Add(new Triangle(7, 1, 8));
 
-		// 5 faces around point 3
 		faces.Add(new Triangle(3, 9, 4));
 		faces.Add(new Triangle(3, 4, 2));
 		faces.Add(new Triangle(3, 2, 6));
 		faces.Add(new Triangle(3, 6, 8));
 		faces.Add(new Triangle(3, 8, 9));
 
-		// 5 adjacent faces 
 		faces.Add(new Triangle(4, 9, 5));
 		faces.Add(new Triangle(2, 4, 11));
 		faces.Add(new Triangle(6, 2, 10));
@@ -103,22 +95,18 @@ public class IcoSphere : MonoBehaviour {
 			Triangle t1 = faces[i];
 			for (int j = i + 1; j < faces.Count; j++) {
 				Triangle t2 = faces[j];
-				if (t1.SharedIndices(t2).Count > 1) {
+				if (t1.SharedIndices(t2).Count == 2) {
 					Triangle.AddNeighbours(t1, t2);
 				}
 			}
 		}
 	}
 
-	private void ReconstructEdges () {
-		int count = 0;
-		while (count < randomize) {
+	public void Reconstruct () {
+		for (int i = 0; i < faces.Count; i++) {
 			Triangle triangle = faces[Random.Range(0, faces.Count)];
 			Triangle neighbour = triangle.neighbours[Random.Range(0, 2)];
-			if(triangle.SharedIndices (neighbour).Count == 2) {
-				Triangle.Reconstruct(ref triangle, ref neighbour);
-				count ++;
-			}
+			Triangle.Reconstruct(ref triangle, ref neighbour);
 		}
 	}
 
