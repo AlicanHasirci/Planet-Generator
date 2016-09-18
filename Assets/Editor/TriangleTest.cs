@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using NUnit.Framework;
+using System.Collections.Generic;
 
 /// <summary>
 /// 				7
@@ -59,11 +60,29 @@ public class TriangleTest {
 	}
 
 	[Test]
-	public void ReconstructSwapsEdgesCorrectly () {
+	public void ReconstructionCreatesCorrectTriangles() {
 		Triangle.Reconstruct(ref t1, ref t2);
-		AssertTriangleIndices(t1, 1,2,4);
-		AssertTriangleIndices(t2, 1,3,4);
+        AssertSharedIndices(t1, t2, 1, 4);
+        Assert.AreEqual(3, t1.indices.Count);
+        Assert.AreEqual(3, t2.indices.Count);
 	}
+
+    [Test]
+    public void ReconstructionShouldSwitchNeighboursCorrectly () {
+        Triangle.Reconstruct(ref t1, ref t2);
+        NeighboursHaveTwoSharedIndices();
+        TrianglesHaveCorrectNumberOfNeighbours();
+    }
+
+    [Test]
+    public void MultipleReconstructionsShouldWorkCorrectly () {
+        Triangle.Reconstruct(ref t1, ref t2);
+        Debug.Log(t1.ToString() + " // " + n2.ToString());
+        Triangle.Reconstruct(ref t1, ref n2);
+        Triangle.Reconstruct(ref t1, ref t2);
+        NeighboursHaveTwoSharedIndices();
+        TrianglesHaveCorrectNumberOfNeighbours();
+    }
 
 	private void AssertNeighbourIndiceCount(Triangle t) {
 		foreach (Triangle n in t.neighbours) {
@@ -72,9 +91,15 @@ public class TriangleTest {
 	}
 
 	private void AssertTriangleIndices(Triangle t, int i1, int i2, int i3) {
-		Assert.IsTrue(t.indices.Contains(i1));
-		Assert.IsTrue(t.indices.Contains(i2));
-		Assert.IsTrue(t.indices.Contains(i3));
-		Assert.AreEqual(3, t.indices.Count);
+		Assert.Contains(i1, t.indices);
+		Assert.Contains(i2, t.indices);
+		Assert.Contains(i3, t.indices);
+        Assert.AreEqual(3, t.indices.Count);
 	}
+
+    private void AssertSharedIndices(Triangle t1, Triangle t2, int s1, int s2) {
+        List<int> sharedIndices = t1.SharedIndices(t2);
+        Assert.Contains(s1, sharedIndices);
+        Assert.Contains(s2, sharedIndices);
+    }
 }

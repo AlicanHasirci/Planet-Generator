@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using System;
+using URandom = UnityEngine.Random;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class IcoSphere : MonoBehaviour {
@@ -104,9 +106,9 @@ public class IcoSphere : MonoBehaviour {
 
 	public void Reconstruct () {
 		for (int i = 0; i < faces.Count; i++) {
-			Triangle triangle = faces[Random.Range(0, faces.Count)];
-			Triangle neighbour = triangle.neighbours[Random.Range(0, 2)];
-			Triangle.Reconstruct(ref triangle, ref neighbour);
+			Triangle triangle = faces[URandom.Range(0, faces.Count)];
+			Triangle neighbour = triangle.neighbours[URandom.Range(0, 2)];
+            Triangle.Reconstruct(ref triangle, ref neighbour);
 		}
 	}
 
