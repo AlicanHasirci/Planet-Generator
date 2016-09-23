@@ -74,16 +74,6 @@ public class TriangleTest {
         TrianglesHaveCorrectNumberOfNeighbours();
     }
 
-    [Test]
-    public void MultipleReconstructionsShouldWorkCorrectly () {
-        Triangle.Reconstruct(ref t1, ref t2);
-        Debug.Log(t1.ToString() + " // " + n2.ToString());
-        Triangle.Reconstruct(ref t1, ref n2);
-        Triangle.Reconstruct(ref t1, ref t2);
-        NeighboursHaveTwoSharedIndices();
-        TrianglesHaveCorrectNumberOfNeighbours();
-    }
-
 	private void AssertNeighbourIndiceCount(Triangle t) {
 		foreach (Triangle n in t.neighbours) {
 			Assert.AreEqual(2, t.SharedIndices(n).Count);

@@ -16,6 +16,6 @@ public class IcoSphereTest {
 
 	[Test]
 	public void EightyFacesExist () {
-		Assert.AreEqual(80, icoSphere.faces.Count);
+		Assert.AreEqual(80, icoSphere.Triangles.Count);
 	}
 }

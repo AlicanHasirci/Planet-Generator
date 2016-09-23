@@ -7,6 +7,7 @@ using System.Text;
 public class Triangle {
     public List<int> indices;
     public List<Triangle> neighbours;
+	public Vector3 centeroid;
 
     public Triangle(int v1, int v2, int v3) {
         this.indices = new List<int>() { v1, v2, v3 };
@@ -30,7 +31,6 @@ public class Triangle {
 
     public override string ToString() {
         StringBuilder sb = new StringBuilder();
-        sb.Append("Indices-> ");
         foreach (int i in indices) sb.Append(i).Append(' ');
         return sb.ToString();
     }
@@ -40,6 +40,9 @@ public class Triangle {
             throw new Exception("Triangles are not neighbouring to eachother!");
         }
 		List<int> shared = t1.SharedIndices(t2);
+		if (shared.Count == 3) {
+			Debug.Log(t1.ToString() + " <-> " + t2.ToString());
+		}
 		    
 		int t1ExcIndex = t1.indices.FindIndex(i => !shared.Contains(i));
 		int t2ExcIndex = t2.indices.FindIndex(i => !shared.Contains(i));
