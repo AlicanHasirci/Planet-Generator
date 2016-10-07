@@ -61,7 +61,7 @@ public class TriangleTest {
 
 	[Test]
 	public void ReconstructionCreatesCorrectTriangles() {
-		Triangle.Reconstruct(ref t1, ref t2);
+		Triangle.Perturb(ref t1, ref t2);
         AssertSharedIndices(t1, t2, 1, 4);
         Assert.AreEqual(3, t1.indices.Count);
         Assert.AreEqual(3, t2.indices.Count);
@@ -69,7 +69,7 @@ public class TriangleTest {
 
     [Test]
     public void ReconstructionShouldSwitchNeighboursCorrectly () {
-        Triangle.Reconstruct(ref t1, ref t2);
+        Triangle.Perturb(ref t1, ref t2);
         NeighboursHaveTwoSharedIndices();
         TrianglesHaveCorrectNumberOfNeighbours();
     }

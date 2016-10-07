@@ -7,11 +7,13 @@ using System.Text;
 public class Triangle {
     public List<int> indices;
     public List<Triangle> neighbours;
+	public List<Polygon> polygons;
 	public Vector3 centeroid;
 
     public Triangle(int v1, int v2, int v3) {
         this.indices = new List<int>() { v1, v2, v3 };
         this.neighbours = new List<Triangle>(3);
+		this.polygons = new List<Polygon>(3);
     }
 
     public int this[int i] {
@@ -35,24 +37,48 @@ public class Triangle {
         return sb.ToString();
     }
 
-    public static void Reconstruct(ref Triangle t1, ref Triangle t2) {
+    public static void Perturb(ref Triangle t1, ref Triangle t2) {
         if (!t1.neighbours.Contains(t2) || !t2.neighbours.Contains(t1)) {
             throw new Exception("Triangles are not neighbouring to eachother!");
         }
 		List<int> shared = t1.SharedIndices(t2);
-		if (shared.Count == 3) {
-			Debug.Log(t1.ToString() + " <-> " + t2.ToString());
-		}
 		    
-		int t1ExcIndex = t1.indices.FindIndex(i => !shared.Contains(i));
-		int t2ExcIndex = t2.indices.FindIndex(i => !shared.Contains(i));
-        int t1Exc = t1[t1ExcIndex];
-		int t2Exc = t2[t2ExcIndex];
+		int t1ExclusiveIndex = t1.indices.FindIndex(i => !shared.Contains(i));
+		int t2ExclusiveIndex = t2.indices.FindIndex(i => !shared.Contains(i));
 		int t1SwapIndex = t1.indices.FindIndex(i => i == shared[0]);
 		int t2SwapIndex = t2.indices.FindIndex(i => i == shared[1]);
-		t1.indices[t1SwapIndex] = t2Exc;
-		t2.indices[t2SwapIndex] = t1Exc;
+		int t1Exclusive = t1[t1ExclusiveIndex];
+		int t2Exclusive = t2[t2ExclusiveIndex];
+		int t1Swap = t1.indices[t1SwapIndex];
+		int t2Swap = t2.indices[t2SwapIndex];
 
+		// Find Polygons to be affected
+		Polygon t1ExcPoly = t1.polygons.Find(p => p.index == t1Exclusive);
+		Polygon t2ExcPoly = t2.polygons.Find(p => p.index == t2Exclusive);
+		Polygon t1SidePoly = t1.polygons.Find(p => p.index == t1Swap);
+		Polygon t2SidePoly = t2.polygons.Find(p => p.index == t2Swap);
+
+		// Check For Outcome
+		Debug.Log(t1ExcPoly.Triangles.Count);
+		if(t1ExcPoly.Triangles.Count == 7 || t2ExcPoly.Triangles.Count == 7 ||
+			t1SidePoly.Triangles.Count == 5 || t2SidePoly.Triangles.Count == 5) {
+			Debug.Log("Skipping preturb.");
+			return;
+		} else {
+			Debug.Log("Perturbing...");
+		}
+
+		//Continue Perturbing
+		t1.indices[t1SwapIndex] = t2Exclusive;
+		t2.indices[t2SwapIndex] = t1Exclusive;
+
+		// Apply Changes To Polygons
+		t1ExcPoly.AddTriangle(t2);
+		t2ExcPoly.AddTriangle(t1);
+		t1SidePoly.RemoveTriangle(t1);
+		t2SidePoly.RemoveTriangle(t2);
+
+		// Apply Neighbour Changes
         Triangle t1Temp = t1;
 		Triangle t2Temp = t2;
 		int t1OldNeighbourIndex = t1.neighbours.FindIndex(n => (!n.Equals(t2Temp) && n.indices.Contains(shared[0])));
@@ -65,7 +91,9 @@ public class Triangle {
         int t2IndexOnNeighbour = t2OldNeighbour.neighbours.FindIndex(n => n.Equals(t2Temp));
         t1OldNeighbour.neighbours[t1IndexOnNeighbour] = t2;
         t2OldNeighbour.neighbours[t2IndexOnNeighbour] = t1;
+
     }
+
 
 	public override bool Equals (object obj) {
 		if(obj is Triangle) {

@@ -36,10 +36,11 @@ public class IcoSphere : MonoBehaviour {
 		CreateIcoSphere ();
 		RefineTriangles ();
 		FindNeighbouringTriangles ();
-		Reconstruct ();
-		CalculateCenteroids();
 		CreatePolygons();
+		Reconstruct ();
+		RelatePolygons ();
 
+		CalculateCenteroids();
 //		PopulateMesh ();
 	}
 
@@ -118,40 +119,33 @@ public class IcoSphere : MonoBehaviour {
 	private void CreatePolygons () {
 		Polygon[] polygons = new Polygon [vertices.Count];
 		foreach (Triangle t in triangles) {
-			foreach (int indice in t.indices) {
-				if (polygons[indice] == null) {
-					polygons[indice] = new Polygon (vertices[indice]);
+			foreach (int index in t.indices) {
+				if (polygons[index] == null) {
+					polygons[index] = new Polygon (index);
 				}
-				polygons[indice].AddTriangle(t);
+				polygons[index].AddTriangle(t);
 			}
-		}
-
-		foreach (Polygon p in polygons) {
-			p.RelateTriangles();
 		}
 
 		this.polygons.Clear();
 		this.polygons.AddRange(polygons);
 	}
+
+	private void RelatePolygons () {
+		foreach (Polygon p in polygons) {
+			p.RelateTriangles();
+		}
+	}
 		
 	public void Reconstruct () {
-		int[] shuffledOrder = new int[triangles.Count];
-		int n = triangles.Count;
-		for(int i = 0; i < triangles.Count; i++) shuffledOrder[i] = i;
-		while (n > 1) {
-			n--;  
-			int k = URandom.Range(0, n);
-			int value = shuffledOrder[k];
-			shuffledOrder[k] = shuffledOrder[n];
-			shuffledOrder[n] = value;
-		}
 
 		int rep = (int)(triangles.Count * (randomness * 0.01f));
 		for (int i = 0; i < rep; i++) {
-			int index = shuffledOrder[i];
+			int index = URandom.Range(0, triangles.Count);
 			Triangle triangle = triangles[index];
 			Triangle neighbour = triangle.neighbours[URandom.Range(0, 2)];
-            Triangle.Reconstruct(ref triangle, ref neighbour);
+
+            Triangle.Perturb(ref triangle, ref neighbour);
 		}
 	}
 

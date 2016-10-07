@@ -4,17 +4,23 @@ using System.Collections.Generic;
 
 public class Polygon {
 
-	private Vector3 center;
+	public int index;
 	private List<Triangle> triangles = new List<Triangle>(6);
 
 	public List<Triangle> Triangles {get {return triangles;}}
 
-	public Polygon (Vector3 center) {
-		this.center = center;
+	public Polygon (int index) {
+		this.index = index;
 	}
 
 	public void AddTriangle (Triangle triangle) {
 		triangles.Add(triangle);
+		triangle.polygons.Add(this);
+	}
+
+	public void RemoveTriangle (Triangle triangle) {
+		triangles.Remove(triangle);
+		triangle.polygons.Remove(this);
 	}
 
 	public void RelateTriangles () {
@@ -38,4 +44,4 @@ public class Polygon {
 		triangles.AddRange(trigs);
 	}
 
-}
+} 

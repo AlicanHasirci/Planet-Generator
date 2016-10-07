@@ -25,7 +25,7 @@ public class IcoSphereEditor : Editor {
 		if(GUILayout.Button("Create")) {
 			icoSphere.Create();
 		}
-
+		OnSceneGUI ();
 	}
 
 	void OnSceneGUI () {
@@ -66,13 +66,10 @@ public class IcoSphereEditor : Editor {
 		}
 	}
 
-	private void DrawTiangle (Triangle t) {
-	}
-
 	private bool IsVisible (Vector3 normal) {
 		if (Camera.current != null) {
 			Vector3 cam = Camera.current.transform.position;
-			return Vector3.Dot(cam.normalized, normal.normalized) > 0;
+			return Vector3.Dot(cam.normalized, normal.normalized) > .2f;
 		}
 		return false;
 	}
