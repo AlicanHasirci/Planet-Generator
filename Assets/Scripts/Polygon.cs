@@ -25,23 +25,22 @@ public class Polygon {
 
 	public void RelateTriangles () {
 		LinkedList<Triangle> trigs = new LinkedList<Triangle>();
-		trigs.AddFirst(triangles[0]);
-		LinkedListNode<Triangle> currentNode = trigs.First;
+		int nextIndex = 0;
+		trigs.AddFirst(triangles[nextIndex]);
 		while (trigs.Count <= triangles.Count) {
-			Triangle current = currentNode.Value;
-			Triangle next = current.neighbours.Find(t => {
-				if (currentNode.Previous  == null) {
-					return !t.Equals(currentNode.Value) && triangles.Contains(t);
-				} else {
-					return !t.Equals(currentNode.Previous.Value) && !t.Equals(currentNode.Value) &&  triangles.Contains(t);
-				}
-			});
-			if (next == null) break;
-			else trigs.AddLast(next);
-			currentNode = trigs.Last;
+			nextIndex = FindNextIndex(nextIndex);
+			trigs.AddLast(triangles[nextIndex]);
 		}
 		triangles.Clear();
 		triangles.AddRange(trigs);
 	}
 
+	public int FindNextIndex (int index) {
+		Triangle trig = triangles[index];
+		int ci = trig.indices.FindIndex(i => i == this.index);
+		int ni = (ci - 1).Mod(3);
+		int sharedIndex = trig.indices[ni];
+		int nextIndex = triangles.FindIndex(t => t.indices.Contains(sharedIndex) && !t.Equals(trig));
+		return nextIndex;
+	}
 } 

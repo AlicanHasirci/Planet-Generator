@@ -38,9 +38,6 @@ public class Triangle {
     }
 
     public static void Perturb(ref Triangle t1, ref Triangle t2) {
-        if (!t1.neighbours.Contains(t2) || !t2.neighbours.Contains(t1)) {
-            throw new Exception("Triangles are not neighbouring to eachother!");
-        }
 		List<int> shared = t1.SharedIndices(t2);
 		    
 		int t1ExclusiveIndex = t1.indices.FindIndex(i => !shared.Contains(i));
@@ -59,13 +56,9 @@ public class Triangle {
 		Polygon t2SidePoly = t2.polygons.Find(p => p.index == t2Swap);
 
 		// Check For Outcome
-		Debug.Log(t1ExcPoly.Triangles.Count);
 		if(t1ExcPoly.Triangles.Count == 7 || t2ExcPoly.Triangles.Count == 7 ||
 			t1SidePoly.Triangles.Count == 5 || t2SidePoly.Triangles.Count == 5) {
-			Debug.Log("Skipping preturb.");
 			return;
-		} else {
-			Debug.Log("Perturbing...");
 		}
 
 		//Continue Perturbing

@@ -6,15 +6,14 @@ using System;
 using URandom = UnityEngine.Random;
 using SysRandom = System.Random;
 
-[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
+//[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class IcoSphere : MonoBehaviour {
 
 	public int recursionLevel = 3;
-	public float radius = 1f;
 	[Range(0, 100)]
 	public int randomness = 10;
+	public Material subMaterial;
 	public int seed;
-	private Mesh mesh;
 
 	[HideInInspector]
 	private List<Vector3> vertices = new List<Vector3>();
@@ -27,8 +26,6 @@ public class IcoSphere : MonoBehaviour {
 	public List<Triangle> Triangles { get { return triangles; } }
 
 	public void Create() {
-		mesh = GetMesh ();
-		mesh.Clear ();
 		vertices.Clear();
 		triangles.Clear();
 		middlePointIndexCache.Clear();
@@ -41,26 +38,26 @@ public class IcoSphere : MonoBehaviour {
 		RelatePolygons ();
 
 		CalculateCenteroids();
-//		PopulateMesh ();
+		CreateMeshesFromPolygons();
 	}
 
 	private void CreateIcoSphere () {
 		float t = (1f + Mathf.Sqrt(5f)) / 2f;
 
-		vertices.Add(new Vector3(-1f,  t,  0f).normalized * radius);
-		vertices.Add(new Vector3( 1f,  t,  0f).normalized * radius);
-		vertices.Add(new Vector3(-1f, -t,  0f).normalized * radius);
-		vertices.Add(new Vector3( 1f, -t,  0f).normalized * radius);
+		vertices.Add(new Vector3(-1f,  t,  0f).normalized);
+		vertices.Add(new Vector3( 1f,  t,  0f).normalized);
+		vertices.Add(new Vector3(-1f, -t,  0f).normalized);
+		vertices.Add(new Vector3( 1f, -t,  0f).normalized);
 
-		vertices.Add(new Vector3( 0f, -1f,  t).normalized * radius);
-		vertices.Add(new Vector3( 0f,  1f,  t).normalized * radius);
-		vertices.Add(new Vector3( 0f, -1f, -t).normalized * radius);
-		vertices.Add(new Vector3( 0f,  1f, -t).normalized * radius);
+		vertices.Add(new Vector3( 0f, -1f,  t).normalized);
+		vertices.Add(new Vector3( 0f,  1f,  t).normalized);
+		vertices.Add(new Vector3( 0f, -1f, -t).normalized);
+		vertices.Add(new Vector3( 0f,  1f, -t).normalized);
 
-		vertices.Add(new Vector3( t,  0f, -1f).normalized * radius);
-		vertices.Add(new Vector3( t,  0f,  1f).normalized * radius);
-		vertices.Add(new Vector3(-t,  0f, -1f).normalized * radius);
-		vertices.Add(new Vector3(-t,  0f,  1f).normalized * radius);
+		vertices.Add(new Vector3( t,  0f, -1f).normalized);
+		vertices.Add(new Vector3( t,  0f,  1f).normalized);
+		vertices.Add(new Vector3(-t,  0f, -1f).normalized);
+		vertices.Add(new Vector3(-t,  0f,  1f).normalized);
 
 		triangles.Add(new Triangle(0, 11, 5));
 		triangles.Add(new Triangle(0, 5, 1));
@@ -159,31 +156,59 @@ public class IcoSphere : MonoBehaviour {
 				(v1.y + v2.y + v3.y) / 3f,
 				(v1.z + v2.z + v3.z) / 3f
 			);
-			t.centeroid = centeroid.normalized * radius;
+			t.centeroid = centeroid.normalized;
 		}
 	}
 
-	private void PopulateMesh () {
-		mesh.vertices = vertices.ToArray();
+	public void CreateMeshesFromPolygons () {
+		foreach(Polygon p in polygons) {
+			GameObject go = CreateGameObject(p);
 
-		List< int > triList = new List<int>();
-		for( int i = 0; i < triangles.Count; i++ ) {
-			triList.Add( triangles[i][0] );
-			triList.Add( triangles[i][1] );
-			triList.Add( triangles[i][2] );
+			go.AddComponent<Showcase>();
+		}
+	}
+
+	private GameObject CreateGameObject (Polygon p) {
+		GameObject go = new GameObject();
+		go.name = "Polygon#" + p.index;
+		go.transform.SetParent(this.transform);
+		MeshRenderer r = go.AddComponent<MeshRenderer>();
+		r.sharedMaterial = subMaterial;
+		MeshFilter f = go.AddComponent<MeshFilter>();
+
+		Vector3 pivot = this.vertices[p.index];
+		Quaternion rotation = Quaternion.FromToRotation(Vector3.up, Vector3.Normalize(pivot));
+
+		go.transform.localPosition = pivot;
+		go.transform.localRotation = Quaternion.FromToRotation(Vector3.up, Vector3.Normalize(pivot));
+		Matrix4x4 trs = Matrix4x4.TRS(
+			Vector3.down,
+			Quaternion.Inverse(rotation),
+			Vector3.one
+		);
+
+		Mesh mesh = new Mesh();
+		Vector3[] vertices = new Vector3[p.Triangles.Count + 1];
+		Vector3[] normals = new Vector3[vertices.Length];
+		int[] indices = new int[p.Triangles.Count * 3];
+		vertices[0] = trs.MultiplyPoint3x4(this.vertices[p.index]);
+		normals[0] = this.vertices[p.index];
+		for (int i = 0, ii = 0; i < p.Triangles.Count; i++) {
+			vertices[i + 1] = trs.MultiplyPoint3x4(p.Triangles[i].centeroid);
+			normals[i + 1] = Vector3.Normalize(p.Triangles[i].centeroid);
+			indices[ii++] = (i + 1).Mod(vertices.Length);
+			indices[ii++] = (i + 2).Mod(vertices.Length);
+			indices[ii++] = 0;
 		}
 
-		mesh.triangles = triList.ToArray();
-		mesh.uv = new Vector2[mesh.vertices.Length];
-
-		Vector3[] normales = new Vector3[ vertices.Count];
-		for( int i = 0; i < normales.Length; i++ )
-			normales[i] = vertices[i].normalized;
-
-		mesh.normals = normales;
+		mesh.vertices = vertices;
+		mesh.triangles = indices;
+		mesh.normals = normals;
 
 		mesh.RecalculateBounds();
 		mesh.Optimize();
+		f.mesh = mesh;
+		return go;
 	}
 
 	#region Utility
@@ -207,7 +232,7 @@ public class IcoSphere : MonoBehaviour {
 		);
 
 		int i = vertices.Count;
-		vertices.Add( middle.normalized * radius );
+		vertices.Add(middle.normalized);
 		middlePointIndexCache.Add(key, i);
 		return i;
 	}

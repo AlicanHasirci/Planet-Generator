@@ -59,9 +59,9 @@ public class IcoSphereEditor : Editor {
 			Vector3 v2 = icoSphere.Vertices[t.indices[1]];
 			Vector3 v3 = icoSphere.Vertices[t.indices[2]];
 			if(IsVisible(v1) && IsVisible(v2) && IsVisible(v3)) {
-				Handles.DrawLine(v1, v2);
-				Handles.DrawLine(v2, v3);
-				Handles.DrawLine(v3, v1);
+				Handles.DrawDottedLine(v1, v2, 5f);
+				Handles.DrawDottedLine(v2, v3, 5f);
+				Handles.DrawDottedLine(v3, v1, 5f);
 			}
 		}
 	}
