@@ -163,8 +163,6 @@ public class IcoSphere : MonoBehaviour {
 	public void CreateMeshesFromPolygons () {
 		foreach(Polygon p in polygons) {
 			GameObject go = CreateGameObject(p);
-
-			go.AddComponent<Showcase>();
 		}
 	}
 

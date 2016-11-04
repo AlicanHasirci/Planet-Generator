@@ -56,20 +56,23 @@ public class Triangle {
 		Polygon t2SidePoly = t2.polygons.Find(p => p.index == t2Swap);
 
 		// Check For Outcome
-		if(t1ExcPoly.Triangles.Count == 7 || t2ExcPoly.Triangles.Count == 7 ||
-			t1SidePoly.Triangles.Count == 5 || t2SidePoly.Triangles.Count == 5) {
+		if(
+			(t1ExcPoly != null && t1ExcPoly.Triangles.Count == 7) || 
+			(t2ExcPoly != null && t2ExcPoly.Triangles.Count == 7) ||
+			(t1SidePoly != null && t1SidePoly.Triangles.Count == 5) ||
+			(t2SidePoly != null && t2SidePoly.Triangles.Count == 5)) {
 			return;
 		}
+		// Apply Changes To Polygons
+		if (t1ExcPoly != null) t1ExcPoly.AddTriangle(t2);
+		if (t2ExcPoly != null) t2ExcPoly.AddTriangle(t1);
+		if (t1SidePoly != null) t1SidePoly.RemoveTriangle(t1);
+		if (t2SidePoly != null) t2SidePoly.RemoveTriangle(t2);
 
 		//Continue Perturbing
 		t1.indices[t1SwapIndex] = t2Exclusive;
 		t2.indices[t2SwapIndex] = t1Exclusive;
 
-		// Apply Changes To Polygons
-		t1ExcPoly.AddTriangle(t2);
-		t2ExcPoly.AddTriangle(t1);
-		t1SidePoly.RemoveTriangle(t1);
-		t2SidePoly.RemoveTriangle(t2);
 
 		// Apply Neighbour Changes
         Triangle t1Temp = t1;
@@ -84,7 +87,6 @@ public class Triangle {
         int t2IndexOnNeighbour = t2OldNeighbour.neighbours.FindIndex(n => n.Equals(t2Temp));
         t1OldNeighbour.neighbours[t1IndexOnNeighbour] = t2;
         t2OldNeighbour.neighbours[t2IndexOnNeighbour] = t1;
-
     }
 
 
